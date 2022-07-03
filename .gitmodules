@@ -1,0 +1,3 @@
+[submodule "btrace-idl"]
+	path = btrace-idl
+	url = https://github.com/alexcogojocaru/btrace-idl
