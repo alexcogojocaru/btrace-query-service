@@ -1,0 +1,3 @@
+storage:
+  hostname: localhost
+  port: 50051

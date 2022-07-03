@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alexcogojocaru/query/config"
 	storage "github.com/alexcogojocaru/query/proto-gen/btrace_storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -26,8 +27,8 @@ type Span struct {
 	Logs     []KeyValue
 }
 
-func NewStorageClient() storage.StorageClient {
-	storageServerHost := "localhost:50051"
+func NewStorageClient(host string, port int) storage.StorageClient {
+	storageServerHost := fmt.Sprintf("%s:%d", host, port)
 	conn, err := grpc.Dial(storageServerHost, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Cannot dial %s", storageServerHost)
@@ -37,6 +38,11 @@ func NewStorageClient() storage.StorageClient {
 }
 
 func main() {
+	conf, err := config.ParseConfig("config/config.yml")
+	if err != nil {
+		log.Fatal("Error while parsing the config file")
+	}
+
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -46,7 +52,9 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	sc := NewStorageClient()
+	sc := NewStorageClient(conf.Storage.Hostname, int(conf.Storage.Port))
+
+	log.Printf("Connecting to %s:%d", conf.Storage.Hostname, conf.Storage.Port)
 
 	r.GET("/api/services", func(ctx *gin.Context) {
 		var services []string
