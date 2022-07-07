@@ -20,10 +20,17 @@ type KeyValue struct {
 	Value string
 }
 
+type Timestamp struct {
+	Started  string
+	Ended    string
+	Duration float32
+}
+
 type Span struct {
 	ID       string
 	ParentID string
 	Name     string
+	Time     Timestamp
 	Logs     []KeyValue
 }
 
@@ -94,23 +101,31 @@ func main() {
 				break
 			}
 
-			log.Print(data)
+			if data == nil {
+				break
+			}
+
 			for _, span := range data.Spans {
 				var logs []KeyValue
 
 				for _, log := range span.Logs {
-					fmt.Print(log)
 					logs = append(logs, KeyValue{
 						Type:  log.Type,
 						Value: log.Value,
 					})
 				}
 
+				log.Printf("%s %v", span.SpanID, logs)
 				spans = append(spans, Span{
 					ID:       span.SpanID,
 					ParentID: span.ParentSpanID,
 					Name:     span.SpanName,
-					Logs:     logs,
+					Time: Timestamp{
+						Started:  span.Timestamp.Started,
+						Ended:    span.Timestamp.Ended,
+						Duration: span.Timestamp.Duration,
+					},
+					Logs: logs,
 				})
 			}
 
